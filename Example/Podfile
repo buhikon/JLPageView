@@ -1,0 +1,12 @@
+source 'https://github.com/CocoaPods/Specs.git'
+use_frameworks!
+
+target 'JLPageView_Example', :exclusive => true do
+  pod "JLPageView", :path => "../"
+end
+
+target 'JLPageView_Tests', :exclusive => true do
+  pod "JLPageView", :path => "../"
+
+  
+end

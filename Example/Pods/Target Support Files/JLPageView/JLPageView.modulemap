@@ -1,0 +1,6 @@
+framework module JLPageView {
+  umbrella header "JLPageView-umbrella.h"
+
+  export *
+  module * { export * }
+}
