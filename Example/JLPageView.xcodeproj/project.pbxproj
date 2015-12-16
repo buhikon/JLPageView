@@ -20,8 +20,8 @@
 		6003F5B2195388D20070C39A /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 6003F591195388D20070C39A /* UIKit.framework */; };
 		6003F5BA195388D20070C39A /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 6003F5B8195388D20070C39A /* InfoPlist.strings */; };
 		6003F5BC195388D20070C39A /* Tests.m in Sources */ = {isa = PBXBuildFile; fileRef = 6003F5BB195388D20070C39A /* Tests.m */; };
-		6495ADF81BEC6A3800D36761 /* JLPageCell.m in Sources */ = {isa = PBXBuildFile; fileRef = 6495ADF51BEC6A3800D36761 /* JLPageCell.m */; };
-		6495ADF91BEC6A3800D36761 /* JLPageView.m in Sources */ = {isa = PBXBuildFile; fileRef = 6495ADF71BEC6A3800D36761 /* JLPageView.m */; };
+		647BFCF61C20FBB1003F547A /* JLPageView.m in Sources */ = {isa = PBXBuildFile; fileRef = 647BFCF31C20FBB1003F547A /* JLPageView.m */; };
+		647BFCF71C20FBB1003F547A /* JLPageViewCell.m in Sources */ = {isa = PBXBuildFile; fileRef = 647BFCF51C20FBB1003F547A /* JLPageViewCell.m */; };
 		873B8AEB1B1F5CCA007FD442 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 873B8AEA1B1F5CCA007FD442 /* Main.storyboard */; };
 		A8FB68BB31357D20FE4BAC12 /* Pods_JLPageView_Tests.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1540DF8891306911F09F8583 /* Pods_JLPageView_Tests.framework */; };
 		FB3BAE5C47E0AB3E2D0EF3C5 /* Pods_JLPageView_Example.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 56D0FE19FC01C34866EB72CF /* Pods_JLPageView_Example.framework */; };
@@ -61,10 +61,10 @@
 		6003F5B9195388D20070C39A /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/InfoPlist.strings; sourceTree = "<group>"; };
 		6003F5BB195388D20070C39A /* Tests.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = Tests.m; sourceTree = "<group>"; };
 		606FC2411953D9B200FFA9A0 /* Tests-Prefix.pch */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "Tests-Prefix.pch"; sourceTree = "<group>"; };
-		6495ADF41BEC6A3800D36761 /* JLPageCell.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = JLPageCell.h; sourceTree = "<group>"; };
-		6495ADF51BEC6A3800D36761 /* JLPageCell.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = JLPageCell.m; sourceTree = "<group>"; };
-		6495ADF61BEC6A3800D36761 /* JLPageView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = JLPageView.h; sourceTree = "<group>"; };
-		6495ADF71BEC6A3800D36761 /* JLPageView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = JLPageView.m; sourceTree = "<group>"; };
+		647BFCF21C20FBB1003F547A /* JLPageView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = JLPageView.h; sourceTree = "<group>"; };
+		647BFCF31C20FBB1003F547A /* JLPageView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = JLPageView.m; sourceTree = "<group>"; };
+		647BFCF41C20FBB1003F547A /* JLPageViewCell.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = JLPageViewCell.h; sourceTree = "<group>"; };
+		647BFCF51C20FBB1003F547A /* JLPageViewCell.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = JLPageViewCell.m; sourceTree = "<group>"; };
 		7B3D3981A4B446FEE7DBF3E4 /* JLPageView.podspec */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text; name = JLPageView.podspec; path = ../JLPageView.podspec; sourceTree = "<group>"; };
 		873B8AEA1B1F5CCA007FD442 /* Main.storyboard */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.storyboard; path = Main.storyboard; sourceTree = "<group>"; };
 		8AED55BA2E50F2FE9D066A13 /* Pods-JLPageView_Tests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-JLPageView_Tests.debug.xcconfig"; path = "Pods/Target Support Files/Pods-JLPageView_Tests/Pods-JLPageView_Tests.debug.xcconfig"; sourceTree = "<group>"; };
@@ -136,12 +136,12 @@
 		6003F593195388D20070C39A /* Example for JLPageView */ = {
 			isa = PBXGroup;
 			children = (
-				6495ADF31BEC6A3800D36761 /* JLPageView */,
+				647BFCF11C20FBB1003F547A /* JLPageView */,
 				6003F59C195388D20070C39A /* JLAppDelegate.h */,
 				6003F59D195388D20070C39A /* JLAppDelegate.m */,
-				873B8AEA1B1F5CCA007FD442 /* Main.storyboard */,
 				6003F5A5195388D20070C39A /* JLViewController.h */,
 				6003F5A6195388D20070C39A /* JLViewController.m */,
+				873B8AEA1B1F5CCA007FD442 /* Main.storyboard */,
 				6003F5A8195388D20070C39A /* Images.xcassets */,
 				6003F594195388D20070C39A /* Supporting Files */,
 			);
@@ -189,13 +189,13 @@
 			name = "Podspec Metadata";
 			sourceTree = "<group>";
 		};
-		6495ADF31BEC6A3800D36761 /* JLPageView */ = {
+		647BFCF11C20FBB1003F547A /* JLPageView */ = {
 			isa = PBXGroup;
 			children = (
-				6495ADF41BEC6A3800D36761 /* JLPageCell.h */,
-				6495ADF51BEC6A3800D36761 /* JLPageCell.m */,
-				6495ADF61BEC6A3800D36761 /* JLPageView.h */,
-				6495ADF71BEC6A3800D36761 /* JLPageView.m */,
+				647BFCF21C20FBB1003F547A /* JLPageView.h */,
+				647BFCF31C20FBB1003F547A /* JLPageView.m */,
+				647BFCF41C20FBB1003F547A /* JLPageViewCell.h */,
+				647BFCF51C20FBB1003F547A /* JLPageViewCell.m */,
 			);
 			path = JLPageView;
 			sourceTree = "<group>";
@@ -409,9 +409,9 @@
 			buildActionMask = 2147483647;
 			files = (
 				6003F59E195388D20070C39A /* JLAppDelegate.m in Sources */,
+				647BFCF61C20FBB1003F547A /* JLPageView.m in Sources */,
 				6003F5A7195388D20070C39A /* JLViewController.m in Sources */,
-				6495ADF81BEC6A3800D36761 /* JLPageCell.m in Sources */,
-				6495ADF91BEC6A3800D36761 /* JLPageView.m in Sources */,
+				647BFCF71C20FBB1003F547A /* JLPageViewCell.m in Sources */,
 				6003F59A195388D20070C39A /* main.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -486,7 +486,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 7.1;
+				IPHONEOS_DEPLOYMENT_TARGET = 9.2;
 				ONLY_ACTIVE_ARCH = YES;
 				SDKROOT = iphoneos;
 				TARGETED_DEVICE_FAMILY = "1,2";
@@ -519,7 +519,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 7.1;
+				IPHONEOS_DEPLOYMENT_TARGET = 9.2;
 				SDKROOT = iphoneos;
 				TARGETED_DEVICE_FAMILY = "1,2";
 				VALIDATE_PRODUCT = YES;

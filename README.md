@@ -22,7 +22,7 @@ pod "JLPageView"
 
 ## Author
 
-Joey L., slarinz@gmail.com
+Joey L.
 
 ## License
 

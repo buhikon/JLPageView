@@ -9,10 +9,10 @@
 /* Begin PBXBuildFile section */
 		15EDBD2EF1191058AEC51BF3BBAD0F14 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3E4E89230EF59BC255123B67864ACF77 /* Foundation.framework */; };
 		545435BF02FDDBB09A6086A3C3CAF344 /* Pods-JLPageView_Example-umbrella.h in Headers */ = {isa = PBXBuildFile; fileRef = 773334ED9DB1DB38A9714641DEF478A5 /* Pods-JLPageView_Example-umbrella.h */; settings = {ATTRIBUTES = (Public, ); }; };
-		6495ADD21BEC655C00D36761 /* JLPageCell.h in Headers */ = {isa = PBXBuildFile; fileRef = 6495ADCE1BEC655C00D36761 /* JLPageCell.h */; };
-		6495ADD31BEC655C00D36761 /* JLPageCell.m in Sources */ = {isa = PBXBuildFile; fileRef = 6495ADCF1BEC655C00D36761 /* JLPageCell.m */; };
-		6495ADD41BEC655C00D36761 /* JLPageView.h in Headers */ = {isa = PBXBuildFile; fileRef = 6495ADD01BEC655C00D36761 /* JLPageView.h */; };
-		6495ADD51BEC655C00D36761 /* JLPageView.m in Sources */ = {isa = PBXBuildFile; fileRef = 6495ADD11BEC655C00D36761 /* JLPageView.m */; };
+		647BFCED1C20F9C3003F547A /* JLPageView.h in Headers */ = {isa = PBXBuildFile; fileRef = 647BFCE91C20F9C3003F547A /* JLPageView.h */; };
+		647BFCEE1C20F9C3003F547A /* JLPageView.m in Sources */ = {isa = PBXBuildFile; fileRef = 647BFCEA1C20F9C3003F547A /* JLPageView.m */; };
+		647BFCEF1C20F9C3003F547A /* JLPageViewCell.h in Headers */ = {isa = PBXBuildFile; fileRef = 647BFCEB1C20F9C3003F547A /* JLPageViewCell.h */; };
+		647BFCF01C20F9C3003F547A /* JLPageViewCell.m in Sources */ = {isa = PBXBuildFile; fileRef = 647BFCEC1C20F9C3003F547A /* JLPageViewCell.m */; };
 		8374A0A91B3544A900E80887E7BE353A /* Pods-JLPageView_Tests-dummy.m in Sources */ = {isa = PBXBuildFile; fileRef = 4B6BFEBE092E02411C94C777CEEAC11D /* Pods-JLPageView_Tests-dummy.m */; };
 		8D2617BB8A6575A45FF449A42EFB1719 /* JLPageView-dummy.m in Sources */ = {isa = PBXBuildFile; fileRef = BEF15C5F70B6FB0E04FBA7242DBA60BF /* JLPageView-dummy.m */; };
 		9BC83D0FB709205F0ECCEFB92CADFFCB /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3E4E89230EF59BC255123B67864ACF77 /* Foundation.framework */; };
@@ -62,10 +62,10 @@
 		54811606D26FF581D3E1CEC45001F591 /* Pods_JLPageView_Tests.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_JLPageView_Tests.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		627E1DC8D38C47509AEB0164CEDAC8DF /* Info.plist */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		63ABD22A9490BCF244660B879A712A38 /* Pods-JLPageView_Example-resources.sh */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.script.sh; path = "Pods-JLPageView_Example-resources.sh"; sourceTree = "<group>"; };
-		6495ADCE1BEC655C00D36761 /* JLPageCell.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = JLPageCell.h; sourceTree = "<group>"; };
-		6495ADCF1BEC655C00D36761 /* JLPageCell.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = JLPageCell.m; sourceTree = "<group>"; };
-		6495ADD01BEC655C00D36761 /* JLPageView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = JLPageView.h; sourceTree = "<group>"; };
-		6495ADD11BEC655C00D36761 /* JLPageView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = JLPageView.m; sourceTree = "<group>"; };
+		647BFCE91C20F9C3003F547A /* JLPageView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = JLPageView.h; sourceTree = "<group>"; };
+		647BFCEA1C20F9C3003F547A /* JLPageView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = JLPageView.m; sourceTree = "<group>"; };
+		647BFCEB1C20F9C3003F547A /* JLPageViewCell.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = JLPageViewCell.h; sourceTree = "<group>"; };
+		647BFCEC1C20F9C3003F547A /* JLPageViewCell.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = JLPageViewCell.m; sourceTree = "<group>"; };
 		6BB7729C391A20C2272B203A3ABD9BAD /* Pods-JLPageView_Tests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; path = "Pods-JLPageView_Tests.release.xcconfig"; sourceTree = "<group>"; };
 		702399958EDEDCED61740473FBC364B5 /* Pods-JLPageView_Tests-acknowledgements.plist */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.plist.xml; path = "Pods-JLPageView_Tests-acknowledgements.plist"; sourceTree = "<group>"; };
 		773334ED9DB1DB38A9714641DEF478A5 /* Pods-JLPageView_Example-umbrella.h */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.h; path = "Pods-JLPageView_Example-umbrella.h"; sourceTree = "<group>"; };
@@ -206,10 +206,10 @@
 		A3285AFA2B8D411FF21372DAC0B52C05 /* Classes */ = {
 			isa = PBXGroup;
 			children = (
-				6495ADD01BEC655C00D36761 /* JLPageView.h */,
-				6495ADD11BEC655C00D36761 /* JLPageView.m */,
-				6495ADCE1BEC655C00D36761 /* JLPageCell.h */,
-				6495ADCF1BEC655C00D36761 /* JLPageCell.m */,
+				647BFCE91C20F9C3003F547A /* JLPageView.h */,
+				647BFCEA1C20F9C3003F547A /* JLPageView.m */,
+				647BFCEB1C20F9C3003F547A /* JLPageViewCell.h */,
+				647BFCEC1C20F9C3003F547A /* JLPageViewCell.m */,
 			);
 			path = Classes;
 			sourceTree = "<group>";
@@ -278,9 +278,9 @@
 			isa = PBXHeadersBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				6495ADD41BEC655C00D36761 /* JLPageView.h in Headers */,
+				647BFCED1C20F9C3003F547A /* JLPageView.h in Headers */,
 				C33C81AE91C8481723373E20B0AABC05 /* JLPageView-umbrella.h in Headers */,
-				6495ADD21BEC655C00D36761 /* JLPageCell.h in Headers */,
+				647BFCEF1C20F9C3003F547A /* JLPageViewCell.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -426,9 +426,9 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				6495ADD31BEC655C00D36761 /* JLPageCell.m in Sources */,
-				6495ADD51BEC655C00D36761 /* JLPageView.m in Sources */,
+				647BFCF01C20F9C3003F547A /* JLPageViewCell.m in Sources */,
 				8D2617BB8A6575A45FF449A42EFB1719 /* JLPageView-dummy.m in Sources */,
+				647BFCEE1C20F9C3003F547A /* JLPageView.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
