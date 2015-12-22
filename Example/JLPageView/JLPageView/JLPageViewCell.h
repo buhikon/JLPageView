@@ -1,7 +1,7 @@
 //
 //  JLPageViewCell.h
 //
-//  Version 0.2.0
+//  Version 0.2.1
 //
 //  Created by Joey L. on 10/5/15.
 //  Copyright 2015 Joey L. All rights reserved.

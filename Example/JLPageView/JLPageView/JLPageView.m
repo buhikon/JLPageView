@@ -1,7 +1,7 @@
 //
 //  JLPageView.m
 //
-//  Version 0.2.0
+//  Version 0.2.1
 //
 //  Created by Joey L. on 10/5/15.
 //  Copyright 2015 Joey L. All rights reserved.
@@ -34,14 +34,22 @@ static NSUInteger numberOfCachedViews = 6;
 static NSUInteger defaultWrapMaxLimit = 100;
 
 - (void)initialize {
-    for (NSInteger i = 0; i < numberOfCachedViews; i++) {
+    
+    if(self.numberOfCachedViews == 0) {
+        self.numberOfCachedViews = numberOfCachedViews;
+    }
+    if(self.defaultWrapMaxLimit == 0) {
+        self.defaultWrapMaxLimit = defaultWrapMaxLimit;
+    }
+    
+    for (NSInteger i = 0; i < self.numberOfCachedViews; i++) {
         JLPageViewCell *cell = [[JLPageViewCell alloc] initWithFrame:CGRectZero];
         
         [self.scrollView addSubview:cell];
         [self.cellPool addObject:cell];
     }
     
-    _wrapMaxLimit = defaultWrapMaxLimit;
+    _wrapMaxLimit = self.defaultWrapMaxLimit;
     
     if (self.numberOfItems > 0) {
         while (_wrapMaxLimit % self.numberOfItems != 0)
@@ -229,7 +237,7 @@ static NSUInteger defaultWrapMaxLimit = 100;
 }
 
 - (NSNumber *)arrayIndexForScreenIndex:(NSInteger)screenIndex {
-    if (screenIndex >= 0) return @(screenIndex % numberOfCachedViews);
+    if (screenIndex >= 0) return @(screenIndex % self.numberOfCachedViews);
     else {
         return nil;
     }
