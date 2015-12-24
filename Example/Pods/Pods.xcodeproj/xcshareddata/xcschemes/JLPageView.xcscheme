@@ -14,7 +14,7 @@
             buildForArchiving = "YES">
             <BuildableReference
                BuildableIdentifier = 'primary'
-               BlueprintIdentifier = '58DB59EE71957771D195F308'
+               BlueprintIdentifier = '325633BDCE2398E09DD34EFF'
                BlueprintName = 'JLPageView'
                ReferencedContainer = 'container:Pods.xcodeproj'
                BuildableName = 'JLPageView.framework'>

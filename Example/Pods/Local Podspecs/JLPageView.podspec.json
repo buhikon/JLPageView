@@ -1,16 +1,16 @@
 {
   "name": "JLPageView",
-  "version": "0.1.0",
-  "summary": "A short description of JLPageView.",
-  "description": "",
-  "homepage": "https://github.com/<GITHUB_USERNAME>/JLPageView",
+  "version": "0.2.1",
+  "summary": "A view which supports pagination like View Pager.",
+  "description": "A view which supports pagination like View Pager. Also infinite scroll is supported.",
+  "homepage": "https://github.com/buhikon/JLPageView",
   "license": "MIT",
   "authors": {
     "Joey L.": "slarinz@gmail.com"
   },
   "source": {
-    "git": "https://github.com/<GITHUB_USERNAME>/JLPageView.git",
-    "tag": "0.1.0"
+    "git": "https://github.com/buhikon/JLPageView.git",
+    "tag": "0.2.1"
   },
   "platforms": {
     "ios": "7.0"

@@ -1,7 +1,7 @@
 //
 //  JLPageView.m
 //
-//  Version 0.2.1
+//  Version 0.3.0
 //
 //  Created by Joey L. on 10/5/15.
 //  Copyright 2015 Joey L. All rights reserved.
@@ -13,14 +13,18 @@
 #error This file must be compiled with ARC. Either turn on ARC for the project or use -fobjc-arc flag
 #endif
 
+#define JLPageViewLog 0
+
 #import "JLPageView.h"
 
 @interface JLPageView () <UIScrollViewDelegate>
 {
     BOOL _isInitialized;
     NSUInteger _wrapMaxLimit;
+    BOOL _currentPageDidChanged;
 }
 @property (nonatomic, weak) UIScrollView *scrollView;
+@property (nonatomic, strong) NSMutableArray *currentCells;
 @property (nonatomic, strong) NSMutableArray *cellPool;
 @property (nonatomic, strong) NSNumber *currentPageIndex;
 @property (nonatomic, strong) NSNumber *currentScreenIndex;
@@ -30,23 +34,21 @@
 
 @implementation JLPageView
 
-static NSUInteger numberOfCachedViews = 6;
 static NSUInteger defaultWrapMaxLimit = 100;
+static NSUInteger defaultCacheRange = 2;
 
 - (void)initialize {
     
-    if(self.numberOfCachedViews == 0) {
-        self.numberOfCachedViews = numberOfCachedViews;
-    }
     if(self.defaultWrapMaxLimit == 0) {
         self.defaultWrapMaxLimit = defaultWrapMaxLimit;
     }
+    if(self.cacheRange == 0) {
+        self.cacheRange = defaultCacheRange;
+    }
     
-    for (NSInteger i = 0; i < self.numberOfCachedViews; i++) {
-        JLPageViewCell *cell = [[JLPageViewCell alloc] initWithFrame:CGRectZero];
-        
-        [self.scrollView addSubview:cell];
-        [self.cellPool addObject:cell];
+    for (NSInteger i = 0; i < self.cacheRange * 2 + 1; i++) {
+        JLPageViewCell *cell = [self createPageViewCell];
+        [self queueCellToPool:cell];
     }
     
     _wrapMaxLimit = self.defaultWrapMaxLimit;
@@ -110,43 +112,63 @@ static NSUInteger defaultWrapMaxLimit = 100;
     
     return _scrollView;
 }
-
-- (NSMutableArray *)cellPool {
-    if (!_cellPool) {
+- (NSMutableArray *)currentCells
+{
+    if(!_currentCells) {
+        _currentCells = [[NSMutableArray alloc] init];
+    }
+    return _currentCells;
+}
+- (NSMutableArray *)cellPool
+{
+    if(!_cellPool) {
         _cellPool = [[NSMutableArray alloc] init];
     }
-    
     return _cellPool;
 }
 
 - (void)setCurrentScreenIndex:(NSNumber *)currentScreenIndex {
+    
+#if JLPageViewLog
+    NSLog(@"[set currentScreenIndex] %@", currentScreenIndex);
+#endif
+    
     if (!_currentScreenIndex || _currentScreenIndex.integerValue != currentScreenIndex.integerValue) {
         _currentScreenIndex = currentScreenIndex;
         
         if (_currentScreenIndex) {
-            [self updateCellsFrame];
+            //[self updateCellsFrame];
             
-            NSUInteger numberOfItems = self.numberOfItems;
-            
-            if (numberOfItems > 0) {
-                NSInteger pageIndex = currentScreenIndex.integerValue % numberOfItems;
-                self.currentPageIndex = @(pageIndex);
+            NSNumber *pageIndex = [self pageIndexForScreenIndex:currentScreenIndex.integerValue];
+            if(pageIndex) {
+                self.currentPageIndex = pageIndex;
             }
         }
     }
 }
 
 - (void)setCurrentPageIndex:(NSNumber *)currentPageIndex {
-    if (!_currentPageIndex || _currentPageIndex.integerValue != currentPageIndex.integerValue) {
+    
+#if JLPageViewLog
+    NSLog(@"[set currentPageIndex] %@", currentPageIndex);
+#endif
+    
+    if(!_currentPageIndex || _currentPageIndex.integerValue != currentPageIndex.integerValue) {
         _currentPageIndex = currentPageIndex;
+        _currentPageDidChanged = YES;
         
         if (_currentPageIndex) {
             [self prepareViews];
+            [self updateCellsFrame];
+            [self dequeueCellsFromCurrentArrayIfNecessary];
             
             if ([(id)self.delegate respondsToSelector:@selector(pageView:didChangeCurrentIndex:)]) {
                 [self.delegate pageView:self didChangeCurrentIndex:currentPageIndex.integerValue];
             }
         }
+    }
+    else {
+        [self updateCellsFrame];
     }
 }
 
@@ -163,13 +185,15 @@ static NSUInteger defaultWrapMaxLimit = 100;
 - (void)reloadData {
     if (!_isInitialized) return;
     
-    for (JLPageViewCell *cell in self.cellPool) {
+    for (JLPageViewCell *cell in self.currentCells) {
         cell.index = -1;
     }
     
     [self updateCellsFrame];
     [self prepareViews];
 }
+
+#pragma mark (move)
 
 - (void)moveToIndex:(NSInteger)index {
     [self moveToIndex:index animated:NO];
@@ -178,10 +202,9 @@ static NSUInteger defaultWrapMaxLimit = 100;
 - (void)moveToIndex:(NSInteger)index animated:(BOOL)animated {
     if (!_isInitialized) return;
     
-    if ([self isValidPageIndex:index]) {
-        NSInteger wrapSize = self.wrapEnabled ? _wrapMaxLimit : 0;
-        NSInteger screenIndex = index + wrapSize;
-        [self moveToScreenIndex:screenIndex animated:animated];
+    NSNumber *screenIndex = [self screenIndexForPageIndex:index];
+    if(screenIndex) {
+        [self moveToScreenIndex:screenIndex.integerValue animated:animated];
     }
 }
 
@@ -229,62 +252,40 @@ static NSUInteger defaultWrapMaxLimit = 100;
     [self checkCellsVisibility];
 }
 
-- (JLPageViewCell *)cellForScreenIndex:(NSInteger)screenIndex {
-    NSNumber *arrayIndex = [self arrayIndexForScreenIndex:screenIndex];
-    
-    if (arrayIndex) return self.cellPool[arrayIndex.integerValue];
-    else return nil;
-}
-
-- (NSNumber *)arrayIndexForScreenIndex:(NSInteger)screenIndex {
-    if (screenIndex >= 0) return @(screenIndex % self.numberOfCachedViews);
-    else {
-        return nil;
-    }
-}
-
 - (void)prepareViews {
-    // current
+    
     NSNumber *currentPageIndex = self.currentPageIndex;
-    NSNumber *currentScreenIndex = self.currentScreenIndex;
-    {
-        JLPageViewCell *cell = [self cellForScreenIndex:currentScreenIndex.integerValue];
-        
-        if (cell.index != currentPageIndex.integerValue) {
-            cell.index = currentPageIndex.integerValue;
-            [self.dataSource prepareCell:cell AtIndex:currentPageIndex.integerValue];
-        }
-    }
-    
-    // next
     NSNumber *nextPageIndex = [self nextPageIndex:currentPageIndex];
-    
-    if (nextPageIndex) {
-        NSNumber *nextScreenIndex = [self nextScreenIndex:currentScreenIndex];
-        
-        if (nextScreenIndex) {
-            JLPageViewCell *cell = [self cellForScreenIndex:nextScreenIndex.integerValue];
-            
-            if (cell.index != nextPageIndex.integerValue) {
-                cell.index = nextPageIndex.integerValue;
-                [self.dataSource prepareCell:cell AtIndex:nextPageIndex.integerValue];
-            }
-        }
-    }
-    
-    // before
     NSNumber *beforePageIndex = [self beforePageIndex:currentPageIndex];
     
-    if (beforePageIndex) {
-        NSNumber *beforeScreenIndex = [self beforeScreenIndex:currentScreenIndex];
-        
-        if (beforeScreenIndex) {
-            JLPageViewCell *cell = [self cellForScreenIndex:beforeScreenIndex.integerValue];
-            
-            if (cell.index != beforePageIndex.integerValue) {
-                cell.index = beforePageIndex.integerValue;
-                [self.dataSource prepareCell:cell AtIndex:beforePageIndex.integerValue];
-            }
+    if(currentPageIndex) {
+        NSInteger pageIndex = currentPageIndex.integerValue;
+        JLPageViewCell *cell = [self cellInCurrentArrayForPageIndex:pageIndex];
+        if(!cell) {
+            cell = [self dequeueCellFromPoolForPageIndex:pageIndex];
+            cell.index = pageIndex;
+            [self.dataSource prepareCell:cell AtIndex:pageIndex];
+            [self queueCellToCurrentArray:cell];
+        }
+    }
+    if(nextPageIndex) {
+        NSInteger pageIndex = nextPageIndex.integerValue;
+        JLPageViewCell *cell = [self cellInCurrentArrayForPageIndex:pageIndex];
+        if(!cell) {
+            cell = [self dequeueCellFromPoolForPageIndex:pageIndex];
+            cell.index = pageIndex;
+            [self.dataSource prepareCell:cell AtIndex:pageIndex];
+            [self queueCellToCurrentArray:cell];
+        }
+    }
+    if(beforePageIndex) {
+        NSInteger pageIndex = beforePageIndex.integerValue;
+        JLPageViewCell *cell = [self cellInCurrentArrayForPageIndex:pageIndex];
+        if(!cell) {
+            cell = [self dequeueCellFromPoolForPageIndex:pageIndex];
+            cell.index = pageIndex;
+            [self.dataSource prepareCell:cell AtIndex:pageIndex];
+            [self queueCellToCurrentArray:cell];
         }
     }
 }
@@ -294,187 +295,60 @@ static NSUInteger defaultWrapMaxLimit = 100;
     
     if (numberOfItems == 0) return;
     
-    NSInteger pageIndex = self.currentScreenIndex.integerValue % numberOfItems;
-    
-    // current
-    NSNumber *currentPageIndex = @(pageIndex);
+#if JLPageViewLog
+    NSLog(@"[updateCellsFrame] ---- contentOffset : %@ ----", NSStringFromCGPoint(self.scrollView.contentOffset));
+#endif
+    NSNumber *currentPageIndex = [self pageIndexForScreenIndex:self.currentScreenIndex.integerValue];
+    NSNumber *nextPageIndex = [self nextPageIndex:currentPageIndex];
+    NSNumber *beforePageIndex = [self beforePageIndex:currentPageIndex];
     NSNumber *currentScreenIndex = self.currentScreenIndex;
-    {
-        JLPageViewCell *cell = [self cellForScreenIndex:currentScreenIndex.integerValue];
-        cell.frame = [self frameForScreenIndex:currentScreenIndex.integerValue];
+    NSNumber *nextScreenIndex = [self nextScreenIndex:currentScreenIndex];
+    NSNumber *beforeScreenIndex = [self beforeScreenIndex:currentScreenIndex];
+    
+    JLPageViewCell *cell = nil;
+    
+    if(currentPageIndex && currentScreenIndex) {
+        NSInteger pageIndex = currentPageIndex.integerValue;
+        NSInteger screenIndex = currentScreenIndex.integerValue;
+        cell = [self cellInCurrentArrayForPageIndex:pageIndex];
+        cell.frame = [self frameForScreenIndex:screenIndex];
         [cell.superview bringSubviewToFront:cell];
+#if JLPageViewLog
+        NSLog(@"   <%lx>current(%@,%@) : %@", (long)cell, currentPageIndex, currentScreenIndex, NSStringFromCGRect(cell.frame));
+#endif
     }
-    
-    // next
-    NSNumber *nextPageIndex = [self nextPageIndex:currentPageIndex];
-    
-    if (nextPageIndex) {
-        NSNumber *nextScreenIndex = [self nextScreenIndex:currentScreenIndex];
-        
-        if (nextScreenIndex) {
-            JLPageViewCell *cell = [self cellForScreenIndex:nextScreenIndex.integerValue];
-            cell.frame = [self frameForScreenIndex:nextScreenIndex.integerValue];
-            [cell.superview bringSubviewToFront:cell];
+    if(nextPageIndex && nextScreenIndex) {
+        NSInteger pageIndex = nextPageIndex.integerValue;
+        NSInteger screenIndex = nextScreenIndex.integerValue;
+        cell = [self cellInCurrentArrayForPageIndex:pageIndex];
+        if(!cell) {
+            NSLog(@"null");
         }
+        cell.frame = [self frameForScreenIndex:screenIndex];
+        [cell.superview bringSubviewToFront:cell];
+#if JLPageViewLog
+            NSLog(@"   <%lx>next(%@,%@) : %@", (long)cell, nextPageIndex, nextScreenIndex, NSStringFromCGRect(cell.frame));
+#endif
     }
-    
-    // before
-    NSNumber *beforePageIndex = [self beforePageIndex:currentPageIndex];
-    
-    if (beforePageIndex) {
-        NSNumber *beforeScreenIndex = [self beforeScreenIndex:currentScreenIndex];
-        
-        if (beforeScreenIndex) {
-            JLPageViewCell *cell = [self cellForScreenIndex:beforeScreenIndex.integerValue];
-            cell.frame = [self frameForScreenIndex:beforeScreenIndex.integerValue];
-            [cell.superview bringSubviewToFront:cell];
-        }
+    if(beforePageIndex && beforeScreenIndex) {
+        NSInteger pageIndex = beforePageIndex.integerValue;
+        NSInteger screenIndex = beforeScreenIndex.integerValue;
+        cell = [self cellInCurrentArrayForPageIndex:pageIndex];
+        cell.frame = [self frameForScreenIndex:screenIndex];
+        [cell.superview bringSubviewToFront:cell];
+#if JLPageViewLog
+            NSLog(@"   <%lx>before(%@,%@) : %@", (long)cell, beforePageIndex, beforeScreenIndex, NSStringFromCGRect(cell.frame));
+#endif
     }
-}
-
-- (void)shiftToCurrentIndex {
-    NSInteger wrapSize = self.wrapEnabled ? _wrapMaxLimit : 0;
-    
-    NSNumber *currentPageIndex = self.currentPageIndex;
-    NSNumber *currentScreenIndex = self.currentScreenIndex;
-    NSNumber *currentExpectedScreenIndex = @(currentPageIndex.integerValue + wrapSize);
-    
-    if (currentScreenIndex) {
-        JLPageViewCell *cell = [self cellForScreenIndex:currentScreenIndex.integerValue];
-        
-        if (cell) {
-            NSNumber *arrayIndex = [self arrayIndexForScreenIndex:currentScreenIndex.integerValue];
-            NSNumber *expectedArrayIndex = [self arrayIndexForScreenIndex:currentExpectedScreenIndex.integerValue];
-            
-            if (arrayIndex && expectedArrayIndex) {
-                if (arrayIndex.integerValue != expectedArrayIndex.integerValue) {
-                    [self.cellPool exchangeObjectAtIndex:arrayIndex.integerValue withObjectAtIndex:expectedArrayIndex.integerValue];
-                }
-            }
-        }
-    }
-    
-    // next
-    NSNumber *nextPageIndex = [self nextPageIndex:currentPageIndex];
-    
-    if (nextPageIndex) {
-        NSNumber *nextScreenIndex = [self nextScreenIndex:currentScreenIndex];
-        NSNumber *nextExpectedScreenIndex = @(nextPageIndex.integerValue + wrapSize);
-        
-        if (nextScreenIndex) {
-            JLPageViewCell *cell = [self cellForScreenIndex:nextScreenIndex.integerValue];
-            
-            if (cell) {
-                NSNumber *arrayIndex = [self arrayIndexForScreenIndex:nextScreenIndex.integerValue];
-                NSNumber *expectedArrayIndex = [self arrayIndexForScreenIndex:nextExpectedScreenIndex.integerValue];
-                
-                if (arrayIndex && expectedArrayIndex) {
-                    if (arrayIndex.integerValue != expectedArrayIndex.integerValue) {
-                        [self.cellPool exchangeObjectAtIndex:arrayIndex.integerValue withObjectAtIndex:expectedArrayIndex.integerValue];
-                    }
-                }
-            }
-        }
-    }
-    
-    // before
-    NSNumber *beforePageIndex = [self beforePageIndex:currentPageIndex];
-    
-    if (beforePageIndex) {
-        NSNumber *beforeScreenIndex = [self beforeScreenIndex:currentScreenIndex];
-        NSNumber *beforeExpectedScreenIndex = @(beforePageIndex.integerValue + wrapSize);
-        
-        if (beforeScreenIndex) {
-            JLPageViewCell *cell = [self cellForScreenIndex:beforeScreenIndex.integerValue];
-            
-            if (cell) {
-                NSNumber *arrayIndex = [self arrayIndexForScreenIndex:beforeScreenIndex.integerValue];
-                NSNumber *expectedArrayIndex = [self arrayIndexForScreenIndex:beforeExpectedScreenIndex.integerValue];
-                
-                if (arrayIndex && expectedArrayIndex) {
-                    if (arrayIndex.integerValue != expectedArrayIndex.integerValue) {
-                        [self.cellPool exchangeObjectAtIndex:arrayIndex.integerValue withObjectAtIndex:expectedArrayIndex.integerValue];
-                    }
-                }
-            }
-        }
-    }
-    
-    [self moveToIndex:self.currentPageIndex.integerValue];
-}
-
-- (BOOL)isValidPageIndex:(NSInteger)pageIndex {
-    NSUInteger numberOfItems = self.numberOfItems;
-    
-    if (0 <= pageIndex && pageIndex < numberOfItems) {
-        return YES;
-    } else {
-        return NO;
-    }
-}
-
-- (NSNumber *)beforePageIndex:(NSNumber *)currentPageIndex {
-    NSInteger beforePageIndex = currentPageIndex.integerValue - 1;
-    
-    if (beforePageIndex < 0) {
-        if (self.wrapEnabled) {
-            NSInteger numberOfItems = self.numberOfItems;
-            return @(numberOfItems - 1);
-        } else {
-            return nil;
-        }
-    }
-    
-    return @(beforePageIndex);
-}
-
-- (NSNumber *)nextPageIndex:(NSNumber *)currentPageIndex {
-    NSInteger nextPageIndex = currentPageIndex.integerValue + 1;
-    
-    NSInteger numberOfItems = self.numberOfItems;
-    
-    if (nextPageIndex >= numberOfItems) {
-        if (self.wrapEnabled) {
-            return @(0);
-        } else {
-            return nil;
-        }
-    }
-    
-    return @(nextPageIndex);
-}
-
-- (NSNumber *)beforeScreenIndex:(NSNumber *)currentScreenIndex {
-    return @(currentScreenIndex.integerValue - 1);
-}
-
-- (NSNumber *)nextScreenIndex:(NSNumber *)currentScreenIndex {
-    return @(currentScreenIndex.integerValue + 1);
-}
-
-- (CGFloat)wrapContentBufferWidth {
-    return self.wrapEnabled ? self.scrollView.frame.size.width * 1000 : 0;
-}
-
-- (CGFloat)xPosForScreenIndex:(NSInteger)screenIndex {
-    return self.scrollView.frame.size.width * screenIndex;
-}
-
-- (CGRect)frameForScreenIndex:(NSInteger)screenIndex {
-    CGFloat xPos = [self xPosForScreenIndex:screenIndex];
-    
-    return CGRectMake(xPos,
-                      0,
-                      self.scrollView.frame.size.width,
-                      self.scrollView.frame.size.height);
 }
 
 - (void)startLoadingCell {
-    if (!self.lastestLoadedIndex || self.lastestLoadedIndex.integerValue != self.currentPageIndex.integerValue) {
-        self.lastestLoadedIndex = self.currentPageIndex;
-        
-        JLPageViewCell *cell = [self cellForScreenIndex:self.currentScreenIndex.integerValue];
-        [self.dataSource startLoadingCell:cell AtIndex:self.currentPageIndex.integerValue];
+    if(_currentPageDidChanged) {
+        _currentPageDidChanged = NO;
+    
+        NSInteger pageIndex = self.currentPageIndex.integerValue;
+        JLPageViewCell *cell = [self cellInCurrentArrayForPageIndex:pageIndex];
+        [self.dataSource startLoadingCell:cell AtIndex:pageIndex];
     }
 }
 
@@ -483,37 +357,39 @@ static NSUInteger defaultWrapMaxLimit = 100;
     
     if (numberOfItems == 0) return;
     
-    NSInteger pageIndex = self.currentScreenIndex.integerValue % numberOfItems;
+//#if JLPageViewLog
+//    NSLog(@"[check visibility] ---- contentOffset : %@ ----", NSStringFromCGPoint(self.scrollView.contentOffset));
+//#endif
     
-    // current
-    NSNumber *currentPageIndex = @(pageIndex);
-    NSNumber *currentScreenIndex = self.currentScreenIndex;
-    JLPageViewCell *currentCell = [self cellForScreenIndex:currentScreenIndex.integerValue];
-    // next
-    JLPageViewCell *nextCell = nil;
+    NSNumber *currentPageIndex = [self pageIndexForScreenIndex:self.currentScreenIndex.integerValue];
     NSNumber *nextPageIndex = [self nextPageIndex:currentPageIndex];
-    
-    if (nextPageIndex) {
-        NSNumber *nextScreenIndex = [self nextScreenIndex:currentScreenIndex];
-        
-        if (nextScreenIndex) {
-            nextCell = [self cellForScreenIndex:nextScreenIndex.integerValue];
-        }
-    }
-    
-    // before
-    JLPageViewCell *beforeCell = nil;
     NSNumber *beforePageIndex = [self beforePageIndex:currentPageIndex];
     
-    if (beforePageIndex) {
-        NSNumber *beforeScreenIndex = [self beforeScreenIndex:currentScreenIndex];
-        
-        if (beforeScreenIndex) {
-            beforeCell = [self cellForScreenIndex:beforeScreenIndex.integerValue];
-        }
+    JLPageViewCell *currentCell = nil;
+    JLPageViewCell *nextCell = nil;
+    JLPageViewCell *beforeCell = nil;
+    
+    if(currentPageIndex) {
+        NSInteger pageIndex = currentPageIndex.integerValue;
+        currentCell = [self cellInCurrentArrayForPageIndex:pageIndex];
+    }
+    if(nextPageIndex) {
+        NSInteger pageIndex = nextPageIndex.integerValue;
+        nextCell = [self cellInCurrentArrayForPageIndex:pageIndex];
+    }
+    if(beforePageIndex) {
+        NSInteger pageIndex = beforePageIndex.integerValue;
+        beforeCell = [self cellInCurrentArrayForPageIndex:pageIndex];
     }
     
-    for (JLPageViewCell *cell in self.cellPool) {
+    
+//#if JLPageViewLog
+//    NSLog(@"   <%lx>current(%@) : %@", (long)currentCell, currentPageIndex, NSStringFromCGRect(currentCell.frame));
+//    NSLog(@"   <%lx>next(%@) : %@", (long)nextCell, nextPageIndex, NSStringFromCGRect(nextCell.frame));
+//    NSLog(@"   <%lx>before(%@) : %@", (long)beforeCell, beforePageIndex, NSStringFromCGRect(beforeCell.frame));
+//#endif
+    
+    for (JLPageViewCell *cell in self.currentCells) {
         if (cell == currentCell || cell == nextCell || cell == beforeCell) {
             continue;
         }
@@ -597,6 +473,199 @@ static NSUInteger defaultWrapMaxLimit = 100;
     }
 }
 
+- (BOOL)isValidPageIndex:(NSInteger)pageIndex {
+    NSUInteger numberOfItems = self.numberOfItems;
+    
+    if (0 <= pageIndex && pageIndex < numberOfItems) {
+        return YES;
+    } else {
+        return NO;
+    }
+}
+
+#pragma mark -
+
+- (NSNumber *)pageIndexForScreenIndex:(NSInteger)screenIndex {
+    if(self.numberOfItems > 0) {
+        NSInteger wrapSize = self.wrapEnabled ? _wrapMaxLimit : 0;
+        NSInteger pageIndex = (screenIndex - wrapSize + self.numberOfItems) % self.numberOfItems;
+        return @(pageIndex);
+    }
+    return nil;
+}
+- (NSNumber *)screenIndexForPageIndex:(NSInteger)pageIndex {
+    if ([self isValidPageIndex:pageIndex]) {
+        NSInteger wrapSize = self.wrapEnabled ? _wrapMaxLimit : 0;
+        NSInteger screenIndex = pageIndex + wrapSize;
+        return @(screenIndex);
+    }
+    return nil;
+}
+
+- (NSNumber *)beforePageIndex:(NSNumber *)currentPageIndex {
+    NSInteger beforePageIndex = currentPageIndex.integerValue - 1;
+    
+    if (beforePageIndex < 0) {
+        if (self.wrapEnabled) {
+            NSInteger numberOfItems = self.numberOfItems;
+            return @(numberOfItems - 1);
+        } else {
+            return nil;
+        }
+    }
+    
+    return @(beforePageIndex);
+}
+
+- (NSNumber *)nextPageIndex:(NSNumber *)currentPageIndex {
+    NSInteger nextPageIndex = currentPageIndex.integerValue + 1;
+    
+    NSInteger numberOfItems = self.numberOfItems;
+    
+    if (nextPageIndex >= numberOfItems) {
+        if (self.wrapEnabled) {
+            return @(0);
+        } else {
+            return nil;
+        }
+    }
+    
+    return @(nextPageIndex);
+}
+
+- (NSNumber *)beforeScreenIndex:(NSNumber *)currentScreenIndex {
+    if(currentScreenIndex) {
+        return @(currentScreenIndex.integerValue - 1);
+    }
+    return nil;
+}
+
+- (NSNumber *)nextScreenIndex:(NSNumber *)currentScreenIndex {
+    if(currentScreenIndex) {
+        return @(currentScreenIndex.integerValue + 1);
+    }
+    return nil;
+}
+
+- (CGFloat)wrapContentBufferWidth {
+    return self.wrapEnabled ? self.scrollView.frame.size.width * 1000 : 0;
+}
+
+- (CGFloat)xPosForScreenIndex:(NSInteger)screenIndex {
+    return self.scrollView.frame.size.width * screenIndex;
+}
+
+- (CGRect)frameForScreenIndex:(NSInteger)screenIndex {
+    CGFloat xPos = [self xPosForScreenIndex:screenIndex];
+    
+    return CGRectMake(xPos,
+                      0,
+                      self.scrollView.frame.size.width,
+                      self.scrollView.frame.size.height);
+}
+
+- (JLPageViewCell *)createPageViewCell {
+    JLPageViewCell *cell = [[JLPageViewCell alloc] initWithFrame:CGRectZero];
+    return cell;
+}
+
+#pragma mark (queue / dequeue)
+
+- (JLPageViewCell *)dequeueCellFromPoolForPageIndex:(NSInteger)pageIndex {
+    
+#if JLPageViewLog
+    NSLog(@"[dequeue - pool] pageIndex : %ld", (long)pageIndex);
+#endif
+    
+    JLPageViewCell *result = nil;
+    
+    // looking for a cell which has same index
+    for (NSInteger i=0; i<self.cellPool.count; i++) {
+        JLPageViewCell *cell = self.cellPool[i];
+        if(cell.index == pageIndex) {
+            result = cell;
+            [self.cellPool removeObjectAtIndex:i];
+#if JLPageViewLog
+            NSLog(@"   found cell at pool for pageIndex : %ld", (long)pageIndex);
+#endif
+            break;
+        }
+    }
+    
+    // looking for any cells
+    if(!result) {
+        if(self.cellPool.count == 0) {
+            // create and add a cell into the pool if empty.
+            JLPageViewCell *cell = [self createPageViewCell];
+            [self.cellPool addObject:cell];
+#if JLPageViewLog
+            NSLog(@"   create a new cell and add it into pool, because it is empty.");
+#endif
+        }
+        result = self.cellPool[0];
+        [self.cellPool removeObjectAtIndex:0];
+#if JLPageViewLog
+        NSLog(@"   first cell");
+#endif
+    }
+    
+    return result;
+}
+- (void)queueCellToCurrentArray:(JLPageViewCell *)cell {
+#if JLPageViewLog
+    NSLog(@"[queue - current array] pageIndex : %ld", (long)cell.index);
+#endif
+    [self.scrollView addSubview:cell];
+    [self.currentCells addObject:cell];
+}
+- (JLPageViewCell *)dequeueCellFromCurrentArrayForPageIndex:(NSInteger)pageIndex {
+#if JLPageViewLog
+    NSLog(@"[dequeue - current array] pageIndex : %ld", (long)pageIndex);
+#endif
+    JLPageViewCell *cell = [self cellInCurrentArrayForPageIndex:pageIndex];
+    if(cell) {
+        [self.currentCells removeObject:cell];
+        [cell removeFromSuperview];
+    }
+    return cell;
+}
+- (void)queueCellToPool:(JLPageViewCell *)cell {
+#if JLPageViewLog
+    NSLog(@"[queue - pool] pageIndex : %ld", (long)cell.index);
+#endif
+    [self.cellPool addObject:cell];
+}
+- (JLPageViewCell *)cellInCurrentArrayForPageIndex:(NSInteger)pageIndex {
+#if JLPageViewLog
+    NSMutableString *s = [NSMutableString string];
+    for (JLPageViewCell *cell in self.currentCells) {
+        [s appendFormat:@"%ld ", (long)cell.index];
+    }
+    NSLog(@"looking for cell (%ld) in [%@]", (long)pageIndex, s);
+#endif
+    for (JLPageViewCell *cell in self.currentCells) {
+        if(cell.index == pageIndex) {
+            return cell;
+        }
+    }
+    return nil;
+}
+/**
+ *  check cells in the current array, and if cells are found which is out of cache range, then dequeue from the current array.
+ */
+- (void)dequeueCellsFromCurrentArrayIfNecessary {
+    NSInteger pageIndex = self.currentPageIndex.integerValue;
+    JLPageViewCell *currentCell = [self cellInCurrentArrayForPageIndex:pageIndex];
+    
+    for(NSInteger i=self.currentCells.count-1; i>=0; i--) {
+        JLPageViewCell *cell = self.currentCells[i];
+        if(ABS(cell.frame.origin.x - currentCell.frame.origin.x) > self.cacheRange * self.scrollView.frame.size.width) {
+            [self dequeueCellFromCurrentArrayForPageIndex:cell.index];
+            [self queueCellToPool:cell];
+        }
+    }
+}
+
 #pragma mark - event
 
 - (void)pageTapped:(UITapGestureRecognizer *)gr {
@@ -649,7 +718,7 @@ static NSUInteger defaultWrapMaxLimit = 100;
         [self.delegate scrollViewDidEndDecelerating:scrollView];
     }
     
-    [self shiftToCurrentIndex];
+    [self moveToIndex:self.currentPageIndex.integerValue];
     [self startLoadingCell];
 }
 

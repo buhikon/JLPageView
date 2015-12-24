@@ -1,7 +1,7 @@
 //
 //  JLPageView.h
 //
-//  Version 0.2.1
+//  Version 0.3.0
 //
 //  Created by Joey L. on 10/5/15.
 //  Copyright 2015 Joey L. All rights reserved.
@@ -54,8 +54,16 @@
 @property (nonatomic, readonly) NSInteger index;
 @property (nonatomic, readonly) NSUInteger numberOfItems;
 
-@property (nonatomic, assign) NSUInteger numberOfCachedViews;
 @property (nonatomic, assign) NSUInteger defaultWrapMaxLimit;
+/**
+ *  cache range
+ *
+ *  if value is 2, 5 cells will be in the current array. and other cells will be stored in the pool.
+ *  (current-2, current-1, current, current+1, current+2)
+ *  default is 2.
+ */
+@property (nonatomic, assign) NSUInteger cacheRange;
+
 
 - (void)reloadData;
 

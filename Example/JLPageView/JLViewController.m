@@ -7,13 +7,15 @@
 //
 
 #import "JLViewController.h"
-#import "JLPageView.h"
+#import <JLPageView/JLPageView.h>
 
 @interface JLViewController ()
 @property (weak, nonatomic) IBOutlet UILabel *label;
 @end
 
 @implementation JLViewController
+
+#define JLViewControllerLog 0
 
 - (void)viewDidLoad {
     [super viewDidLoad];
@@ -23,10 +25,13 @@
 #pragma mark - JLPageViewDelegate
 
 - (NSUInteger)numberOfItemsInPageView:(JLPageView *)pageView {
-    return 10;
+    return 5;
 }
 
 - (void)prepareCell:(JLPageViewCell *)reusingCell AtIndex:(NSInteger)index {
+#if JLViewControllerLog
+    NSLog(@"[prepare] %ld", (long)index);
+#endif
     NSInteger tag = 1000;
     UILabel *label = [reusingCell viewWithTag:tag];
     
@@ -41,16 +46,23 @@
     label.text = [NSString stringWithFormat:@"index : %ld", (long)index];
     
     reusingCell.backgroundColor = [UIColor colorWithRed:1.000 green:1.000 blue:0.707 alpha:1.000];
+    
+//    NSLog(@"[prepare]<%ld> %ld", (long)reusingCell, (long)index);
 }
 
 - (void)startLoadingCell:(JLPageViewCell *)reusingCell AtIndex:(NSInteger)index {
+#if JLViewControllerLog
+    NSLog(@"[load] %ld", (long)index);
+#endif
     reusingCell.backgroundColor = [UIColor yellowColor];
 }
 
 #pragma mark - JLPageViewDataSource
 
 - (void)pageView:(JLPageView *)pageView didSelectCellAtIndex:(NSInteger)index {
-    NSLog(@"# tapped : %ld", (long)index);
+#if JLViewControllerLog
+    NSLog(@"[select] %ld", (long)index);
+#endif
 }
 
 - (void)pageView:(JLPageView *)pageView didChangeCurrentIndex:(NSInteger)index {
@@ -58,11 +70,15 @@
 }
 
 - (void)pageViewCellDidAppear:(JLPageViewCell *)pageViewCell {
-    NSLog(@"    appear : %ld", (long)pageViewCell.index);
+#if JLViewControllerLog
+    NSLog(@"[appear] %ld", (long)pageViewCell.index);
+#endif
 }
 
 - (void)pageViewCellDidDisappear:(JLPageViewCell *)pageViewCell {
-    NSLog(@"    disappear : %ld", (long)pageViewCell.index);
+#if JLViewControllerLog
+    NSLog(@"[disappear] %ld", (long)pageViewCell.index);
+#endif
 }
 
 @end

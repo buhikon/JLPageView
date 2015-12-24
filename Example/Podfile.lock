@@ -1,5 +1,5 @@
 PODS:
-  - JLPageView (0.1.0)
+  - JLPageView (0.2.1)
 
 DEPENDENCIES:
   - JLPageView (from `../`)
@@ -9,6 +9,6 @@ EXTERNAL SOURCES:
     :path: ../
 
 SPEC CHECKSUMS:
-  JLPageView: 538a2ec384878010223c2176a433300421ebb0aa
+  JLPageView: f91b30f38edaac39a62973f14f805ab6a48c3a90
 
 COCOAPODS: 0.39.0
